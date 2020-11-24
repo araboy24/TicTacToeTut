@@ -21,6 +21,8 @@ moveCount = 0
 
 gameOver = False
 
+isTwoPlayer = True
+
 class Piece(object):
     def __init__(self, x, y, isX):
         self.x = x
@@ -41,6 +43,18 @@ class Piece(object):
 def redrawGameWindow():
     win.blit(board, (0,0))
     pygame.draw.rect(win, (0,0,0), [600, 0, 200, 600])
+    font = pygame.font.SysFont('arial', 50)
+    smallFont = pygame.font.SysFont('arial', 25)
+    if moveCount % 2 == 0:
+        turn = 'X'
+    else:
+        turn = 'O'
+    turnText = font.render(turn + "'s Turn", 1, (255, 255, 255))
+    win.blit(turnText, (sw - turnText.get_width() -10, 10))
+
+    if gameOver:
+        gameOverText = smallFont.render("Game Over", 1, (255, 255, 255))
+        win.blit(gameOverText, (sw - gameOverText.get_width() - 35, 20 + turnText.get_height()))
 
     for piece in piecesOnBoard:
         piece.draw(win)
@@ -48,7 +62,7 @@ def redrawGameWindow():
 
     pygame.display.update()
 
-def isGameOver():
+def isGameOver(boardVals):
     zeroFound = False
     for i in boardVals:
         for j in i:
@@ -79,33 +93,71 @@ def isGameOver():
             return True
 
     if boardVals[0][2] == boardVals[1][1] and boardVals[0][2] == boardVals[2][0]:
-        if boardVals[0][0] != 0:
+        if boardVals[0][2] != 0: # Change boardVals[0][0] to boardVals[0][2]
             return True
+
+    # Add return false
+    return False
+
+
+def computerMove(val):
+    # 1 = x
+    # -1 = O
+    tempBoard = boardVals[:]
+    for i in range(3):
+        for j in range(3):
+            if tempBoard[i][j] == 0:
+                tempBoard[i][j] = val
+                isWin = isGameOver(tempBoard)
+                if isWin:
+                    boardVals[i][j] = val
+                    piecesOnBoard.append(Piece(j*200, i*200, False))
+                    return
 
 
 
 run = True
 while run:
-    clock.tick(50)
+    clock.tick(10)
 
     if not gameOver:
         mouseX, mouseY = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
+        if isTwoPlayer:
+            if click != (0,0,0):
+                if moveCount % 2 == 0:
+                    if boardVals[mouseY//200][mouseX//200] == 0:
+                        piecesOnBoard.append(Piece(mouseX, mouseY, True))
+                        boardVals[mouseY//200][mouseX//200] = 1
+                        moveCount += 1
+                else:
+                    if boardVals[mouseY // 200][mouseX // 200] == 0:
+                        piecesOnBoard.append(Piece(mouseX, mouseY, False))
+                        boardVals[mouseY // 200][mouseX // 200] = -1
+                        moveCount += 1
 
-        if click != (0,0,0):
+            gameOver = isGameOver(boardVals)
+        else:
             if moveCount % 2 == 0:
-                if boardVals[mouseY//200][mouseX//200] == 0:
-                    piecesOnBoard.append(Piece(mouseX, mouseY, True))
-                    boardVals[mouseY//200][mouseX//200] = 1
-                    moveCount += 1
+                #uses move:
+                if click != (0, 0, 0):
+                    if boardVals[mouseY//200][mouseX//200] == 0:
+                        piecesOnBoard.append(Piece(mouseX, mouseY, True))
+                        boardVals[mouseY//200][mouseX//200] = 1
+                        moveCount += 1
             else:
-                if boardVals[mouseY // 200][mouseX // 200] == 0:
-                    piecesOnBoard.append(Piece(mouseX, mouseY, False))
-                    boardVals[mouseY // 200][mouseX // 200] = -1
-                    moveCount += 1
+                computerMove(-1)
 
-        gameOver = isGameOver()
-
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_SPACE]:
+        boardVals = [[0,0,0], [0,0,0], [0,0,0]]
+        piecesOnBoard.clear()
+        moveCount = 0
+        gameOver = False
+    if keys[pygame.K_1]:
+        isTwoPlayer = False
+    if keys[pygame.K_2]:
+        isTwoPlayer = True
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
