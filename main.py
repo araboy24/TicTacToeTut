@@ -1,3 +1,7 @@
+# Add import Copy and rand
+import copy
+import random
+
 import pygame
 
 pygame.init()
@@ -99,22 +103,40 @@ def isGameOver(boardVals):
     # Add return false
     return False
 
-
 def computerMove(val):
     # 1 = x
-    # -1 = O
-    tempBoard = boardVals[:]
+    #-1 = o
     for i in range(3):
         for j in range(3):
-            if tempBoard[i][j] == 0:
-                tempBoard[i][j] = val
-                isWin = isGameOver(tempBoard)
-                if isWin:
-                    boardVals[i][j] = val
-                    piecesOnBoard.append(Piece(j*200, i*200, False))
-                    return
+
+            bCopy = copy.deepcopy(boardVals)
+            if bCopy[i][j] == 0:
+                bCopy[i][j] = val
+                if isGameOver(bCopy):
+                    piecesOnBoard.append(Piece(j*200, i * 200, False)) if val == -1 else piecesOnBoard.append(Piece(j*200, i * 200, True))
+                    return bCopy
 
 
+    move = selRanMove()
+    if move != None:
+        x, y = move
+        bCopy = copy.deepcopy(boardVals)
+        bCopy[y][x] = val
+        piecesOnBoard.append(Piece(x*200, y * 200, False)) # if val == -1 else piecesOnBoard.append(Piece(j*200, i * 200, True))
+        return bCopy
+    return boardVals
+
+
+def selRanMove():
+    validMoves = []
+    for i in range(3):
+        for j in range(3):
+            if boardVals[i][j] == 0:
+                validMoves.append((j,i))
+    if len(validMoves) > 0:
+        return random.choice(validMoves)
+    else:
+        return None
 
 run = True
 while run:
@@ -139,14 +161,18 @@ while run:
             gameOver = isGameOver(boardVals)
         else:
             if moveCount % 2 == 0:
-                #uses move:
                 if click != (0, 0, 0):
-                    if boardVals[mouseY//200][mouseX//200] == 0:
+                    if boardVals[mouseY // 200][mouseX // 200] == 0:
                         piecesOnBoard.append(Piece(mouseX, mouseY, True))
-                        boardVals[mouseY//200][mouseX//200] = 1
+                        boardVals[mouseY // 200][mouseX // 200] = 1
                         moveCount += 1
+                        print(boardVals)
             else:
-                computerMove(-1)
+                boardVals = computerMove(-1)
+                moveCount += 1
+                gameOver = isGameOver(boardVals)
+                print(boardVals)
+
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_SPACE]:
@@ -158,6 +184,7 @@ while run:
         isTwoPlayer = False
     if keys[pygame.K_2]:
         isTwoPlayer = True
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
