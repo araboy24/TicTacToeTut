@@ -105,7 +105,7 @@ def isGameOver(boardVals):
 
 def computerMove(val):
     # 1 = x
-    #-1 = o
+    # -1 = o
     for i in range(3):
         for j in range(3):
 
@@ -116,13 +116,23 @@ def computerMove(val):
                     piecesOnBoard.append(Piece(j*200, i * 200, False)) if val == -1 else piecesOnBoard.append(Piece(j*200, i * 200, True))
                     return bCopy
 
+    opVal = val * -1
+    for i in range(3):
+        for j in range(3):
+            bCopy = copy.deepcopy(boardVals)
+            if bCopy[i][j] == 0:
+                bCopy[i][j] = opVal
+                if isGameOver(bCopy):
+                    piecesOnBoard.append(Piece(j*200, i*200, False)) if val == -1 else piecesOnBoard.append(Piece(j*200, i*200, True))
+                    bCopy[i][j] = val
+                    return bCopy
 
     move = selRanMove()
     if move != None:
         x, y = move
         bCopy = copy.deepcopy(boardVals)
         bCopy[y][x] = val
-        piecesOnBoard.append(Piece(x*200, y * 200, False)) # if val == -1 else piecesOnBoard.append(Piece(j*200, i * 200, True))
+        piecesOnBoard.append(Piece(x*200, y * 200, False))  # if val == -1 else piecesOnBoard.append(Piece(j*200, i * 200, True))
         return bCopy
     return boardVals
 
